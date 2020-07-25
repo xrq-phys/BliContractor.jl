@@ -1,3 +1,10 @@
+# This file defines contract interfaces for the forward pass (value and 
+# differentials), as well as the final interface to contract_lazy wrapper.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 # tovalue unveils base type of duals.
 tovalue(::Type{<:Dual{Tg, T}}) where {Tg, T} = tovalue(T)
 tovalue(T::Type{<:Union{Float32, Float64}}) = T
