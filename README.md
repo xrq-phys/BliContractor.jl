@@ -42,7 +42,7 @@ For advanced usage, one might refer to the docstrings.
 
 ## Roadmap
 
-- [ ] Support mixed multiplication of plain values with Duals, e.g. `Float64` with `Dual{Tag, Float64}` or `Dual{Tag, Float64}` with `Dual{Tag, Dual{Tag, Float64}}`;
+- [ ] Explicitly dispatch mixed multiplication of plain values with Duals, e.g. `(Float64, Dual{Tag, Float64})` or `(Dual{Tag, Float64}, Dual{Tag, Dual{Tag, Float64}})`, though they are already available via type conversion;
 - [x] Let it play well with [Zygote.jl](https://github.com/FluxML/Zygote.jl), to at least 1st order;
 - [ ] Enable 2nd order pullback for Zygote.jl, though `hessian` is already working.
 
