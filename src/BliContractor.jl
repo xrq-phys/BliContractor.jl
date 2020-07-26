@@ -6,6 +6,7 @@ module BliContractor
 
 # feature switch, as constants.
 const global enable_pullbacks = true
+const global enable_mm_rules = true
 
 using Libdl
 using LinearAlgebra
@@ -27,6 +28,9 @@ end
 include("contract_fwd.jl")
 if enable_pullbacks
     include("contract_bak.jl")
+end
+if enable_mm_rules
+    include("matrix_mul.jl")
 end
 
 end
