@@ -4,8 +4,16 @@
 
 module BliContractor
 
+# feature switch, as constants.
+const global enable_pullbacks = true
+
 using Libdl
+using LinearAlgebra
 using ForwardDiff: Dual, Partials
+if enable_pullbacks
+    using Zygote: @adjoint
+end
+import Base
 
 export contract, contract!
 
@@ -17,6 +25,9 @@ __init__() = begin
 end
 
 include("contract_fwd.jl")
+if enable_pullbacks
+    include("contract_bak.jl")
+end
 
 end
 
