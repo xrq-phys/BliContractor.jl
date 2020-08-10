@@ -40,6 +40,6 @@ end
 @info("Found TBLIS run-time in $tblis_dir.")
 
 # try to build C wrapper.
-@info("$cc -I$tblis_dir/include -I$tblis_dir/include/tblis $src_path -L$tblis_dir/lib -ltblis -shared -o $dll_path.$dll")
-run(`$cc -I$tblis_dir/include -I$tblis_dir/include/tblis $src_path -L$tblis_dir/lib -ltblis -shared -o $dll_path.$dll`)
+@info("$cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis $src_path -L$tblis_dir/lib -ltblis -shared -o $dll_path.$dll")
+run(`$cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis $src_path -L$tblis_dir/lib -ltblis -shared -o $dll_path.$dll`)
 
