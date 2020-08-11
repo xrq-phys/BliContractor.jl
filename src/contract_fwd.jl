@@ -20,7 +20,12 @@ contract(A::Array{T}, idxA::String, B::Array{T}, idxB::String, idxC::String) whe
     dimsB = Dict([(c, size(B)[i]) for (i, c)=enumerate(split(idxB, ""))])
     merge!(dimsA, dimsB)
     # calculate final size of tensor C and allocate.
-    szC = ([dimsA[c] for c=split(idxC, "")]..., )
+    if length(idxC) != 0
+        szC = ([dimsA[c] for c=split(idxC, "")]..., )
+    else
+        # contract to a scalar.
+        szC = ( )
+    end
     C = zeros(T, szC...)
     # invoke the dispatch process.
     contract!(A, idxA, B, idxB, C, idxC)
