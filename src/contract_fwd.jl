@@ -15,9 +15,16 @@ contract(A::Array{T}, B::Array{T}, idxA::String, idxB::String, idxC::String) whe
 end
 
 contract(A::Array{T}, idxA::String, B::Array{T}, idxB::String, idxC::String) where {T} = begin
+    idxsize(idx::String, siz::NTuple) = begin
+        if length(idx) != 0
+            return Dict([(c, siz[i]) for (i, c)=enumerate(split(idx, ""))])
+        else
+            return Dict()
+        end
+    end
     # (unsafe) dimension lookup for A & B indices.
-    dimsA = Dict([(c, size(A)[i]) for (i, c)=enumerate(split(idxA, ""))])
-    dimsB = Dict([(c, size(B)[i]) for (i, c)=enumerate(split(idxB, ""))])
+    dimsA = idxsize(idxA, size(A))
+    dimsB = idxsize(idxB, size(B))
     merge!(dimsA, dimsB)
     # calculate final size of tensor C and allocate.
     if length(idxC) != 0
