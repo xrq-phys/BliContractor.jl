@@ -44,7 +44,11 @@ For advanced usage, one might refer to the docstrings.
 
 - [ ] Explicitly dispatch mixed multiplication of plain values with Duals, e.g. `(Float64, Dual{Tag, Float64})` or `(Dual{Tag, Float64}, Dual{Tag, Dual{Tag, Float64}})`, though they are already available via type conversion;
 - [x] Let it play well with [Zygote.jl](https://github.com/FluxML/Zygote.jl), to at least 1st order;
-- [ ] Enable 2nd order pullback for Zygote.jl, though `hessian` is already working.
+- [x] Enable 2nd order pullback for Zygote.jl.
+
+## On 2nd Derivative with Zygote.jl
+Second derivative through `hessian` is already working on Zygote.jl's `master` branch, but taking `pullback` 2 times requires something more which is currently only available in the upstream development branch:
+[**DhairyaLGandhi/Zygote.jl**/`dg/iddict`](https://github.com/DhairyaLGandhi/Zygote.jl/tree/dg/iddict).
 
 ## Performance
 
