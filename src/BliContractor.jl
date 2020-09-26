@@ -8,6 +8,7 @@ module BliContractor
 const global enable_pullbacks = true
 const global enable_mm_rules = true
 
+using tblis_jll
 using Libdl
 using LinearAlgebra
 using ForwardDiff: Dual, Partials
