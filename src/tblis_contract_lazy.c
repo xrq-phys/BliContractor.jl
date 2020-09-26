@@ -14,12 +14,24 @@
 void EXPAND_NAME( contract, typechar ) \
     (uint8_t *addrA, uint64_t ndA, long *szA, long *stA, long sftA, char *idxA, \
      uint8_t *addrB, uint64_t ndB, long *szB, long *stB, long sftB, char *idxB, \
-     uint8_t *addrC, uint64_t ndC, long *szC, long *stC, long sftC, char *idxC) \
+     uint8_t *addrC, uint64_t ndC, long *szC, long *stC, long sftC, char *idxC, \
+     typename *alpha, typename *beta) \
 { \
     tblis_tensor A, B, C; \
-    EXPAND_NAME(init_tensor, typechar)(&A, ndA, szA, (typename *)(addrA + sftA), stA); \
+    if (*alpha == (typename)1.0) { \
+        EXPAND_NAME(init_tensor, typechar)(&A, ndA, szA, (typename *)(addrA + sftA), stA); \
+    } else { \
+        /* Scale A with Alpha. */ \
+        EXPAND_NAME(init_tensor_scaled, typechar)(&A, *alpha, ndA, szA, (typename *)(addrA + sftA), stA); \
+    } \
     EXPAND_NAME(init_tensor, typechar)(&B, ndB, szB, (typename *)(addrB + sftB), stB); \
-    EXPAND_NAME(init_tensor, typechar)(&C, ndC, szC, (typename *)(addrC + sftC), stC); \
+\
+    /* Note: Beta*C branches w.r.t. 1.0 instead of 0.0. */ \
+    if (*beta == (typename)1.0) { \
+        EXPAND_NAME(init_tensor, typechar)(&C, ndC, szC, (typename *)(addrC + sftC), stC); \
+    } else { \
+        EXPAND_NAME(init_tensor_scaled, typechar)(&C, *beta, ndC, szC, (typename *)(addrC + sftC), stC); \
+    } \
 \
     tblis_tensor_mult(NULL, NULL, \
                       &A, idxA, \
