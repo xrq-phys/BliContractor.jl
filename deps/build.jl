@@ -1,8 +1,12 @@
+# compile the lazy wrapper in C language.
+#
+using tblis_jll: tblis, tblis_path
+
 # os compiler / library name switch.
 global cc = ""
 global dll = ""
 if Sys.iswindows()
-    global cc = "cl"
+    global cc = "gcc" # default for MinGW provider.
     global dll = "dll"
 elseif Sys.isapple()
     global cc = "gcc" # prefers gcc alias, which is the same as BLIS' config script.
@@ -23,23 +27,17 @@ if "TBLISDIR" in keys(ENV)
     if length(tblis_dir) <= 0 || ~isdir(joinpath(tblis_dir, "include/tblis"))
         error("Invalid TBLIS installation specified by TBLISDIR.")
     end
+    @info "Using user-specified TBLIS runtime in $tblis_dir."
 else
-    for dir in (homedir(), "/opt", "/usr/local", "/usr")
-        if isdir(joinpath(dir, "include/tblis"))
-            global tblis_dir = dir
-            break
-        end
-    end
-    if length(tblis_dir) <= 0
-        error(string("A valid TBLIS installation was not found. Binary provided by ",
-                     "tblis_jll is not good enough at the moment when this package ",
-                     "was last updated. Please build it from source available from ",
-                     "https://github.com/devinamatthews/tblis."))
-    end
+    # use the tblis_jll vendored binary.
+    global tblis_dir = dirname(dirname(tblis_path))
 end
-@info("Found TBLIS run-time in $tblis_dir.")
+
+compile_cmd = ```
+    $cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis -Wl,-rpath,$tblis_dir/lib -L$tblis_dir/lib -ltblis $src_path -shared -o $dll_path.$dll
+```
 
 # try to build C wrapper.
-@info("$cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis $src_path -Wl,-rpath,$tblis_dir/lib -L$tblis_dir/lib -ltblis -shared -o $dll_path.$dll")
-run(`$cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis $src_path -Wl,-rpath,$tblis_dir/lib -L$tblis_dir/lib -ltblis -shared -o $dll_path.$dll`)
+@info compile_cmd
+run(  compile_cmd )
 
