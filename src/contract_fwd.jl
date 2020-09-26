@@ -64,11 +64,11 @@ contract!(::Type{<:Dual{Tg, T, ND}}, topst::Int64, # top-level stride
         contract!(T, topst,
                   A, sftA + id*sizeof(T), idxA,
                   B, sftB,                idxB,
-                  C, sftC + id*sizeof(T), idxC, α, β)
+                  C, sftC + id*sizeof(T), idxC, α, 1)
         contract!(T, topst,
                   A, sftA,                idxA,
                   B, sftB + id*sizeof(T), idxB,
-                  C, sftC + id*sizeof(T), idxC, α, β)
+                  C, sftC + id*sizeof(T), idxC, α, 1)
     end
 end
 
