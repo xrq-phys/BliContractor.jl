@@ -10,11 +10,11 @@ tovalue(::Type{<:Dual{Tg, T}}) where {Tg, T} = tovalue(T)
 tovalue(T::Type{<:Union{Float32, Float64, ComplexF32, ComplexF64}}) = T
 
 
-contract(A::Array{T}, B::Array{T}, idxA::String, idxB::String, idxC::String) where {T} = begin
+contract(A::StridedArray{T}, B::StridedArray{T}, idxA::String, idxB::String, idxC::String) where {T} = begin
     contract(A, idxA, B, idxB, idxC)
 end
 
-contract(A::Array{T}, idxA::String, B::Array{T}, idxB::String, idxC::String) where {T} = begin
+contract(A::StridedArray{T}, idxA::String, B::StridedArray{T}, idxB::String, idxC::String) where {T} = begin
     idxsize(idx::String, siz::NTuple) = begin
         if length(idx) != 0
             return Dict([(c, siz[i]) for (i, c)=enumerate(split(idx, ""))])
@@ -42,18 +42,23 @@ contract(A::Array{T}, idxA::String, B::Array{T}, idxB::String, idxC::String) whe
 end
 
 "Entry of contraction. Here idx{A,B,C} are 3 entries corresponding to e.g. \"ik,jk->ij\"."
-contract!(A::Array{T}, idxA::String,
-          B::Array{T}, idxB::String,
-          C::Array{T}, idxC::String, α=true, β=false) where {T} = begin
+contract!(A::StridedArray{T}, idxA::String,
+          B::StridedArray{T}, idxB::String,
+          C::StridedArray{T}, idxC::String, α=true, β=false) where {T} = begin
     contract!(T, sizeof(T)÷sizeof(tovalue(T)),
               A, 0, idxA, B, 0, idxB, C, 0, idxC, α, β)
 end
 
+# Dispatch w.r.t. elements with top stride (topst) and view shifts (sft[ABC])
+# defined outside A, B and C. This somehow disgraceful style is because Julia
+# cannot convert view(reinterpret(view)) into a StridedArray even when the 
+# actual memory layout is strided.
+
 "Dispatcher for Dual types of ForwardDiff.jl."
 contract!(::Type{<:Dual{Tg, T, ND}}, topst::Int64, # top-level stride
-          A::Array, sftA::Int64, idxA::String, # arrays here are all at their top-level (not dispatched)
-          B::Array, sftB::Int64, idxB::String,
-          C::Array, sftC::Int64, idxC::String, α, β) where {Tg, T, ND} = begin
+          A::StridedArray, sftA::Int64, idxA::String, # arrays here are all at their top-level (not dispatched)
+          B::StridedArray, sftB::Int64, idxB::String,
+          C::StridedArray, sftC::Int64, idxC::String, α, β) where {Tg, T, ND} = begin
     # direct dispatch for value types.
     contract!(T, topst, A, sftA, idxA, B, sftB, idxB, C, sftC, idxC, α, β)
 
@@ -80,9 +85,9 @@ macro tblis_contract_sym(typename, typechar)
     jlfunc = :( contract! )
     return quote
         $(esc(jlfunc))(::Type{<:$typename}, topst::Int64,
-                       A::Array, sftA::Int64, idxA::String,
-                       B::Array, sftB::Int64, idxB::String,
-                       C::Array, sftC::Int64, idxC::String, α, β) = begin
+                       A::StridedArray, sftA::Int64, idxA::String,
+                       B::StridedArray, sftB::Int64, idxB::String,
+                       C::StridedArray, sftC::Int64, idxC::String, α, β) = begin
         $(esc(jlfunc))(dlsym(dll_obj, $(esc(ccfunc))), topst,
                        A, sftA, idxA,
                        B, sftB, idxB,
@@ -97,9 +102,9 @@ end
 @tblis_contract_sym ComplexF64 z
 
 contract!(contract_lazy::Ptr, topst::Int64,
-          A::Array, sftA::Int64, idxA::String,
-          B::Array, sftB::Int64, idxB::String,
-          C::Array, sftC::Int64, idxC::String,
+          A::StridedArray, sftA::Int64, idxA::String,
+          B::StridedArray, sftB::Int64, idxB::String,
+          C::StridedArray, sftC::Int64, idxC::String,
           α::Number, β::Number) = begin
     # convert stride unit in top duals.
     stA::Array{Int64} = topst .* [strides(A)...]
