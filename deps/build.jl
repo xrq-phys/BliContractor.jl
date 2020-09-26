@@ -1,5 +1,6 @@
 # compile the lazy wrapper in C language.
 #
+using tblis_jll
 using tblis_jll: tblis, tblis_path
 
 # os compiler / library name switch.
@@ -22,8 +23,10 @@ src_path = joinpath(@__DIR__, "../src/tblis_contract_lazy.c")
 
 # find TBLIS build.
 global tblis_dir = ""
+global tblis_available = false
 if "TBLISDIR" in keys(ENV)
     global tblis_dir = ENV["TBLISDIR"]
+    global tblis_available = true
     if length(tblis_dir) <= 0 || ~isdir(joinpath(tblis_dir, "include/tblis"))
         error("Invalid TBLIS installation specified by TBLISDIR.")
     end
@@ -31,6 +34,7 @@ if "TBLISDIR" in keys(ENV)
 else
     # use the tblis_jll vendored binary.
     global tblis_dir = dirname(dirname(tblis_path))
+    global tblis_available = tblis_jll.is_available()
 end
 
 compile_cmd = ```
@@ -38,6 +42,10 @@ compile_cmd = ```
 ```
 
 # try to build C wrapper.
-@info compile_cmd
-run(  compile_cmd )
+if tblis_available
+    @info compile_cmd
+    run(  compile_cmd )
+else
+    @info "A valid TBLIS installation was not found. BliContractor.jl will not be available."
+end
 

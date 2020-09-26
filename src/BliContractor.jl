@@ -22,8 +22,19 @@ export contract, contract!
 global dll_path = joinpath(dirname(pathof(BliContractor)), "tblis_contract_lazy")
 global dll_obj = C_NULL
 
+is_available() = dll_obj != C_NULL
+
 __init__() = begin
-    global dll_obj = dlopen(dll_path)
+    # Cannot guarantee TBLIS is always available.
+    try
+        global dll_obj = dlopen(dll_path)
+    catch dll_err
+        if !occursin("could not load library", dll_err.msg)
+            # Throw again the error.
+            # Otherwise we treat the error as library unavailability.
+            throw(dll_err)
+        end
+    end
 end
 
 include("contract_fwd.jl")
