@@ -7,7 +7,7 @@
 
 # tovalue unveils base type of duals.
 tovalue(::Type{<:Dual{Tg, T}}) where {Tg, T} = tovalue(T)
-tovalue(T::Type{<:Union{Float32, Float64}}) = T
+tovalue(T::Type{<:Union{Float32, Float64, ComplexF32, ComplexF64}}) = T
 
 
 contract(A::Array{T}, B::Array{T}, idxA::String, idxB::String, idxC::String) where {T} = begin
@@ -73,27 +73,28 @@ contract!(::Type{<:Dual{Tg, T, ND}}, topst::Int64, # top-level stride
 end
 
 # These are final dispatchers for plain numbers.
-# As ForwardDiff.jl only gives support for real numbers, only s/d are instantiated.
+# Implement s/d/c/z, corresponding to tblis_contract_lazy.c.
 
-contract!(::Type{<:Float32}, topst::Int64,
-          A::Array, sftA::Int64, idxA::String,
-          B::Array, sftB::Int64, idxB::String,
-          C::Array, sftC::Int64, idxC::String, α, β) = begin
-    contract!(dlsym(dll_obj, :tblis_contract_s), topst,
-              A, sftA, idxA,
-              B, sftB, idxB,
-              C, sftC, idxC, Float32(α), Float32(β));
+macro tblis_contract_sym(typename, typechar)
+    ccfunc = Expr(:string, string("tblis_contract_", typechar))
+    jlfunc = :( contract! )
+    return quote
+        $(esc(jlfunc))(::Type{<:$typename}, topst::Int64,
+                       A::Array, sftA::Int64, idxA::String,
+                       B::Array, sftB::Int64, idxB::String,
+                       C::Array, sftC::Int64, idxC::String, α, β) = begin
+        $(esc(jlfunc))(dlsym(dll_obj, $(esc(ccfunc))), topst,
+                       A, sftA, idxA,
+                       B, sftB, idxB,
+                       C, sftC, idxC, $typename(α), $typename(β));
+        end
+    end
 end
 
-contract!(::Type{<:Float64}, topst::Int64,
-          A::Array, sftA::Int64, idxA::String,
-          B::Array, sftB::Int64, idxB::String,
-          C::Array, sftC::Int64, idxC::String, α, β) = begin
-    contract!(dlsym(dll_obj, :tblis_contract_d), topst,
-              A, sftA, idxA,
-              B, sftB, idxB,
-              C, sftC, idxC, Float64(α), Float64(β));
-end
+@tblis_contract_sym Float32    s
+@tblis_contract_sym Float64    d
+@tblis_contract_sym ComplexF32 c
+@tblis_contract_sym ComplexF64 z
 
 contract!(contract_lazy::Ptr, topst::Int64,
           A::Array, sftA::Int64, idxA::String,
