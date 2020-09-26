@@ -5,26 +5,28 @@
 
 - All these are made possible thanks to [TBLIS](https://github.com/devinamatthews/tblis);
 
-## Build
+## Installation
 
 ### Prerequisites
 
 - Julia & GCC;
-- A TBLIS build;
+- ~~A TBLIS build~~;
 
 ### Steps
 
 This package is not registered at Julia's official repository yet.
 One needs to clone with a full URI:
-
 ```
 ] add https://github.com/xrq-phys/BliContractor.jl
 ```
+This will link the Julia package against TBLIS library vendored by `tblis_jll`.
 
-After specifying their installation root of TBLIS with `export TBLISDIR=${PathToYourTBLIS}`, start Julia and run:
+If one wants to use their own TBLIS build, specify their TBLIS installation root
+ with `export TBLISDIR=${PathToYourTBLIS}`, start Julia and run:
 ```
 ] build BliContractor
 ```
+BliContractor.jl will be relinked to use the user-defined TBLIS installation.
 Build steps as well as environment specification needs to be done *only once*.
 
 ## Usage
