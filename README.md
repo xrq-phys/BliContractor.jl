@@ -7,17 +7,8 @@
 
 ## Installation
 
-### Prerequisites
-
-- Julia & GCC;
-- ~~A TBLIS build~~;
-
-### Steps
-
-This package is not registered at Julia's official repository yet.
-One needs to clone with a full URI:
 ```
-] add https://github.com/xrq-phys/BliContractor.jl
+] add BliContractor
 ```
 This will link the Julia package against TBLIS library vendored by `tblis_jll`.
 
