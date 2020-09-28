@@ -1,6 +1,6 @@
 # BliContractor.jl
 
-> Fast tensor contractor for Julia, based on TBLIS, with AD support, within 300* lines. <br />
+> Fast tensor contractor for Julia, based on TBLIS, with high-order AD and Stride support, within 300* lines. <br />
 > \* Result may vary as more dispatch rules are added.
 
 - All these are made possible thanks to [TBLIS](https://github.com/devinamatthews/tblis);
@@ -26,12 +26,35 @@ The simplest API is given by `contract`:
 ```julia
 using BliContractor
 using ForwardDiff: Dual
-At = rand( 3, 4, 5) * Dual{Nothing}(1.0, 1.0);
-Bt = rand(10, 5, 4) * Dual{Nothing}(1.0, 0.0);
+At = rand( 6, 4, 5) * Dual(1.0, 1.0);
+Bt = rand(10, 5, 4) * Dual(1.0, 0.0);
+contract(At, "ikl", Bt, "jlk", "ij")
+# or equivalently:
 contract(At, Bt, "ikl", "jlk", "ij")
 ```
+Index notation here is the same as TBLIS, namely the Einstein's summation rules.
 
-For advanced usage, one might refer to the docstrings.
+If one's having destination tensor `C` preallocated, a `contract!` routine (which is
+ in fact called by `contract`) is also available:
+```julia
+Ct = zeros(6, 10) * Dual(1.0, 0.0);
+contract!(At, "ikl", Bt, "jlk", Ct, "ij")
+```
+
+Tensors can be `Array`s or strided `SubArray`s:
+```julia
+Aw = view(At, :, 1:2:4, :);
+# Unlike the case of BLAS,
+# first dimension is not required to be 1 for performance to be nice:
+Bw = view(Bt, 1:2:10, :, 1:2:4);
+Cv = zeros(6, 5) * Dual(1.0, 0.0);
+contract!(Aw, "ikl", Bw, "jlk", Cv, "ij")
+```
+
+### For Fan of [TensorOperation.jl](https://github.com/Jutho/TensorOperations.jl) (Including Myself)
+
+I've also created [a fork of TensorOperations.jl](https://github.com/xrq-phys/TensorOperations.jl) incorporating
+ BliContractor.jl as one of its `Real` number beckends. A pull request would be created once everything is ready.
 
 ## Roadmap
 
@@ -45,7 +68,9 @@ Second derivative through `hessian` is already working on Zygote.jl's `master` b
 
 ## Performance
 
-Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl).
+Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl),
+ showing that TBLIS' giving better performance over other implementations especially when one has a
+ non-unit column stride (as is the case of `ForwardDiff.Dual`).
 
 For plain `Float64` number:
 ```
@@ -78,7 +103,7 @@ BenchmarkTools.Trial:
 
 For `Dual{Tag, Float64, 1}`:
 ```
-julia> @benchmark begin
+julia> @benchmark begin # Jutho/TensorOperations.jl version.
            @tensor C[i, j] := At[i, k, l] * Bt[j, l, k]
            C
        end setup=(At=rand(300,400,500)*Dual{Nothing}(1.0,0.4);Bt=rand(80,500,400)*Dual{Nothing}(1.0,0.4);)
