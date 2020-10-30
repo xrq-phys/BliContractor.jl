@@ -38,7 +38,7 @@ contract(A::StridedArray{T}, idxA::String, B::StridedArray{T}, idxB::String, idx
     # TODO: test which is faster: β=true or β=false?
     contract!(A, idxA, B, idxB, C, idxC, true, false)
     # return result in allocated container.
-    return C
+    C
 end
 
 "Entry of contraction. Here idx{A,B,C} are 3 entries corresponding to e.g. \"ik,jk->ij\"."
@@ -75,6 +75,7 @@ contract!(::Type{<:Dual{Tg, T, ND}}, topst::Int64, # top-level stride
                   B, sftB + id*sizeof(T), idxB,
                   C, sftC + id*sizeof(T), idxC, α, 1)
     end
+    C
 end
 
 # These are final dispatchers for plain numbers.
@@ -92,6 +93,7 @@ macro tblis_contract_sym(typename, typechar)
                        A, sftA, idxA,
                        B, sftB, idxB,
                        C, sftC, idxC, $typename(α), $typename(β));
+        C
         end
     end
 end
@@ -126,6 +128,6 @@ contract!(contract_lazy::Ptr, topst::Int64,
           A, length(size(A)), szA, stA, sftA, idxA,
           B, length(size(B)), szB, stB, sftB, idxB,
           C, length(size(C)), szC, stC, sftC, idxC, [α], [β])
-    return nothing
+    C
 end
 
