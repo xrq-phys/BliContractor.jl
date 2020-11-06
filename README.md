@@ -82,9 +82,52 @@ Second derivative through `hessian` is already working on Zygote.jl's `master` b
 
 ## Performance
 
-Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl),
- showing that TBLIS' giving better performance over other implementations especially when one has a
- non-unit column stride (as is the case of `ForwardDiff.Dual`).
+Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl).
+
+### GEMM-Incompatible Contractions
+
+A contraction which can not be handled by BLAS' GEMM routines is tested to show superiority of TBLIS over blocked-GEMM calls launched by TensorOperations.jl.
+
+```
+julia> @benchmark begin
+           @tensor C[i, a] = A[i, j, k, l] * B[a, k, l, j]
+           C
+       end setup=(A=rand(40,40,40,40);B=rand(40,40,40,40);C=zeros(40,40))
+BenchmarkTools.Trial: 
+  memory estimate:  2.03 KiB
+  allocs estimate:  33
+  --------------
+  minimum time:     8.118 ms (0.00% GC)
+  median time:      8.243 ms (0.00% GC)
+  mean time:        8.290 ms (0.00% GC)
+  maximum time:     10.373 ms (0.00% GC)
+  --------------
+  samples:          260
+  evals/sample:     1
+  
+julia> using BliContractor # Import BliContractor s.t. @tensor is overriden
+  
+julia> @benchmark begin
+           @tensor C[i, a] = A[i, j, k, l] * B[a, k, l, j]
+           C
+       end setup=(A=rand(40,40,40,40);B=rand(40,40,40,40);C=zeros(40,40))
+BenchmarkTools.Trial: 
+  memory estimate:  5.36 KiB
+  allocs estimate:  96
+  --------------
+  minimum time:     5.444 ms (0.00% GC)
+  median time:      6.110 ms (0.00% GC)
+  mean time:        6.283 ms (0.00% GC)
+  maximum time:     9.298 ms (0.00% GC)
+  --------------
+  samples:          304
+  evals/sample:     1
+```
+Note that this contraction order is a quite extreme one. Usually TBLIS and TensorOperations.jl has quite close GFlOps performance.
+
+### Generic Strided Tensors
+
+Generic-strided tensors test shows that TBLIS' giving better performance over other implementations when one has a non-unit column stride (as is the case of `ForwardDiff.Dual`).
 
 For plain `Float64` number:
 ```
@@ -117,7 +160,7 @@ BenchmarkTools.Trial:
 
 For `Dual{Tag, Float64, 1}`:
 ```
-julia> @benchmark begin # Jutho/TensorOperations.jl version.
+julia> @benchmark begin
            @tensor C[i, j] := At[i, k, l] * Bt[j, l, k]
            C
        end setup=(At=rand(300,400,500)*Dual{Nothing}(1.0,0.4);Bt=rand(80,500,400)*Dual{Nothing}(1.0,0.4);)
