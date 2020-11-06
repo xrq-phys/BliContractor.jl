@@ -6,6 +6,7 @@ module BliContractor
 
 # feature switch, as constants.
 const global enable_pullbacks = true
+const global enable_tensor_opr = true
 const global enable_mm_rules = true
 
 using tblis_jll
@@ -16,6 +17,10 @@ if enable_pullbacks
     using Zygote: @adjoint
 end
 import Base
+if enable_tensor_opr
+    import TensorOperations: contract!
+    import TensorOperations: IndexTuple
+end
 
 export contract, contract!
 
@@ -43,6 +48,9 @@ if enable_pullbacks
 end
 if enable_mm_rules
     include("matrix_mul.jl")
+end
+if enable_tensor_opr
+    include("tensor_opr.jl")
 end
 
 end
