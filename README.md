@@ -1,6 +1,6 @@
 # BliContractor.jl
 
-> Fast tensor contractor for Julia, based on TBLIS, with high-order AD and Stride support, within 300* lines. <br />
+> Fast tensor contractor for Julia, based on TBLIS, with high-order AD and Stride support, within 400* lines. <br />
 > \* Result may vary as more dispatch rules are added.
 
 - All these are made possible thanks to [TBLIS](https://github.com/devinamatthews/tblis);
