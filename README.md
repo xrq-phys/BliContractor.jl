@@ -22,6 +22,24 @@ Build steps as well as environment specification needs to be done *only once*.
 
 ## Usage
 
+### From TensorOperations.jl
+
+My implementation now contains necessary overriding of [TensorOperation.jl](https://github.com/Jutho/TensorOperations.jl)'s CPU backend method. One can directly invoke the `@tensor` macro (or the `ncon` function, etc.) and reach TBLIS backend.
+
+```julia
+using TensorOperations
+using BliContractor
+
+A = rand(10, 10, 10, 10);
+B = rand(10, 10, 10, 10);
+C = ones(10, 10, 10, 10);
+@tensor C[i, a, k, c] = A[i, j, k, l] * B[a, l, c, j]
+```
+
+Supported datatypes are `Float32, Float64, ComplexF32, ComplexF64, Dual{N, Float32}` and `Dual{N, Float64}`. See also below for AD support.
+
+### As Standalone Package
+
 The simplest API is given by `contract`:
 ```julia
 using BliContractor
@@ -32,10 +50,11 @@ contract(At, "ikl", Bt, "jlk", "ij")
 # or equivalently:
 contract(At, Bt, "ikl", "jlk", "ij")
 ```
-Index notation here is the same as TBLIS, namely the Einstein's summation rules.
+Index notation here is the same as TBLIS, namely the Einstein's summation rules. This `contract` (with exclamation mark `!`) is also the only subroutine with [Zygote](https://github.com/FluxML/Zygote.jl)'s backward derivative support (while all subroutines in this module supports [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl)'s forward differential).
 
 If one's having destination tensor `C` preallocated, a `contract!` routine (which is
  in fact called by `contract`) is also available:
+
 ```julia
 Ct = zeros(6, 10) * Dual(1.0, 0.0);
 contract!(At, "ikl", Bt, "jlk", Ct, "ij")
@@ -50,11 +69,6 @@ Bw = view(Bt, 1:2:10, :, 1:2:4);
 Cv = zeros(6, 5) * Dual(1.0, 0.0);
 contract!(Aw, "ikl", Bw, "jlk", Cv, "ij")
 ```
-
-### For Fan of [TensorOperation.jl](https://github.com/Jutho/TensorOperations.jl) (Including Myself)
-
-I've also created [a fork of TensorOperations.jl](https://github.com/xrq-phys/TensorOperations.jl) incorporating
- BliContractor.jl as one of its `Real` number beckends. A pull request would be created once everything is ready.
 
 ## Roadmap
 
