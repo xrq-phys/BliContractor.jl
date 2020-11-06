@@ -13,6 +13,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 tblis_jll = "9c7f617c-f299-5d18-afb6-044c7798b3d0"
 
 [compat]
+TensorOperations = "3.0"
 ForwardDiff = "0.10"
 Zygote = "0.5"
 julia = "1.4"
