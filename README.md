@@ -82,7 +82,12 @@ Second derivative through `hessian` is already working on Zygote.jl's `master` b
 
 ## Performance
 
-Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl).
+Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl). System spec. are the following:
+
+- OS: macOS 10.15.7
+- Processor: Intel(R) Core(R) i5 8259U
+- Frequency: 2.30GHz
+- OpenMP Thread Used: 4
 
 ### GEMM-Incompatible Contractions
 
