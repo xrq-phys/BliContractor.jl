@@ -20,6 +20,7 @@ import Base
 if enable_tensor_opr
     import TensorOperations: contract!
     import TensorOperations: IndexTuple
+    import TensorOperations: IndexError
 end
 
 export contract, contract!
