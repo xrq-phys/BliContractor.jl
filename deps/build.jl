@@ -42,7 +42,7 @@ else
 end
 
 compile_cmd = ```
-    $cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis -Wl,-rpath,$tblis_dir/lib -L$tblis_dir/lib -ltblis $src_path -shared -o $dll_path.$dll
+    $cc -fPIC -I$tblis_dir/include -I$tblis_dir/include/tblis -Wl,-rpath,$tblis_dir/lib -L$tblis_dir/lib -ltblis $src_path -ltblis -shared -o $dll_path.$dll
 ```
 
 # try to build C wrapper.
