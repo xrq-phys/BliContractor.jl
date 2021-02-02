@@ -16,9 +16,9 @@ jobs:
           - '1.5'
           - 'nightly'
         os:
-          # - macOS-latest
           - ubuntu-latest
-          - windows-latest
+          # - macOS-latest
+          # - windows-latest
         # NOTE: Waiting for upstream Aarch64 support.
         # include:
         #   - arch: aarch64
