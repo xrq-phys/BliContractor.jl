@@ -16,6 +16,10 @@ else # Sys.islinux(), which is the default.
     global cc = "gcc"
     global dll = "so"
 end
+# get compiler from environment.
+if "CC" in keys(ENV)
+    global cc = ENV["CC"]
+end
 
 # set path to the pointer-type wrapper.
 dll_path = joinpath(@__DIR__, "../src/tblis_contract_lazy")
