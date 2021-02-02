@@ -1,6 +1,6 @@
 # BliContractor.jl
 
-[docs-dev-url] [![CI][github-img]][github-url] [![][codecov-img]][codecov-url]
+[![CI][github-img]][github-url] [![][codecov-img]][codecov-url]
 
 [github-img]: https://github.com/xrq-phys/BliContractor.jl/workflows/CI/badge.svg
 [github-url]: https://github.com/xrq-phys/BliContractor.jl/actions?query=workflow%3ACI
