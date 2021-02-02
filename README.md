@@ -1,5 +1,12 @@
 # BliContractor.jl
 
+[docs-dev-url] [![CI][github-img]][github-url] [![][codecov-img]][codecov-url]
+
+[github-img]: https://github.com/xrq-phys/BliContractor.jl/workflows/CI/badge.svg
+[github-url]: https://github.com/xrq-phys/BliContractor.jl/actions?query=workflow%3ACI
+[codecov-img]: https://codecov.io/gh/xrq-phys/BliContractor.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/xrq-phys/BliContractor.jl
+
 > Fast tensor contractor for Julia, based on TBLIS, with high-order AD and Stride support, within 400* lines. <br />
 > \* Result may vary as more dispatch rules are added.
 
