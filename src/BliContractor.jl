@@ -14,7 +14,7 @@ using Libdl
 using LinearAlgebra
 using ForwardDiff: Dual, Partials
 if enable_pullbacks
-    using Zygote: @adjoint
+    using ZygoteRules: @adjoint
 end
 import Base
 if enable_tensor_opr
