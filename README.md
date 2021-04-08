@@ -7,8 +7,8 @@
 [codecov-img]: https://codecov.io/gh/xrq-phys/BliContractor.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/xrq-phys/BliContractor.jl
 
-> Fast tensor contractor for Julia, based on TBLIS, with high-order AD and Stride support, within 400* lines. <br />
-> \* Result may vary as more dispatch rules are added.
+> Fast tensor contractor for Julia, based on TBLIS, with high-order AD and Stride support, within 400† lines. <br />
+> † Result may vary as more dispatch rules are added.
 
 - All these are made possible thanks to [TBLIS](https://github.com/devinamatthews/tblis);
 
@@ -89,117 +89,27 @@ Second derivative through `hessian` is already working on Zygote.jl's `master` b
 
 ## Performance
 
-Here is a brief benchmark report given by [BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl). System spec. are the following:
+Here are two benchmark reports collected on the following system:
 
-- OS: macOS 10.15.7
-- Processor: Intel(R) Core(R) i5 8259U
-- Frequency: 2.30GHz
-- OpenMP Thread Used: 4
+- Processor Model: Intel® Xeon® Platinum 8260
+- SIMD Width: 512bits (AVX512)
+- FP Pipelines: 2 AVX512 pipelines per core
+- Frequency Throttling: Yes, even on serial execution.
+- Basic Clock-Frequency: 2.40GHz
+- OS: CentOS Linux 7
+- Julia: 1.5.2 (official)
+- OpenMP # of Threads: 4
 
 ### GEMM-Incompatible Contractions
 
 A contraction which can not be handled by BLAS' GEMM routines is tested to show superiority of TBLIS over blocked-GEMM calls launched by TensorOperations.jl.
 
-```
-julia> @benchmark begin
-           @tensor C[i, a] = A[i, j, k, l] * B[a, k, l, j]
-           C
-       end setup=(A=rand(40,40,40,40);B=rand(40,40,40,40);C=zeros(40,40))
-BenchmarkTools.Trial: 
-  memory estimate:  2.03 KiB
-  allocs estimate:  33
-  --------------
-  minimum time:     8.118 ms (0.00% GC)
-  median time:      8.243 ms (0.00% GC)
-  mean time:        8.290 ms (0.00% GC)
-  maximum time:     10.373 ms (0.00% GC)
-  --------------
-  samples:          260
-  evals/sample:     1
-  
-julia> using BliContractor # Import BliContractor s.t. @tensor is overriden
-  
-julia> @benchmark begin
-           @tensor C[i, a] = A[i, j, k, l] * B[a, k, l, j]
-           C
-       end setup=(A=rand(40,40,40,40);B=rand(40,40,40,40);C=zeros(40,40))
-BenchmarkTools.Trial: 
-  memory estimate:  5.36 KiB
-  allocs estimate:  96
-  --------------
-  minimum time:     5.444 ms (0.00% GC)
-  median time:      6.110 ms (0.00% GC)
-  mean time:        6.283 ms (0.00% GC)
-  maximum time:     9.298 ms (0.00% GC)
-  --------------
-  samples:          304
-  evals/sample:     1
-```
-Note that this contraction order is a quite extreme one. Usually TBLIS and TensorOperations.jl has quite close GFlOps performance.
+![](docs/src/jl_cross.jpg)
 
 ### Generic Strided Tensors
 
-Generic-strided tensors test shows that TBLIS' giving better performance over other implementations when one has a non-unit column stride (as is the case of `ForwardDiff.Dual`).
+Generic-strided tensors are directly supported by TBLIS while in TensorOperations.jl they fall back to hand-written loops without BLAS assembly call.
+ Tensor entries in this test has datatype `ForwardDiff.Dual{<:Any, Float64, 1}`, which mean that the each variable part (value or 1st differential) is stored with 1-element skip within each "column" (`A[:, l, m, n]`) of the tensor, forming a generic-strided storage.
 
-For plain `Float64` number:
-```
-julia> @benchmark ein"ikl,jlk->ij"(At, Bt) setup=(At=rand(300,400,500);Bt=rand(80,500,400);)
-BenchmarkTools.Trial: 
-  memory estimate:  122.26 MiB
-  allocs estimate:  37
-  --------------
-  minimum time:     113.659 ms (0.00% GC)
-  median time:      116.639 ms (0.00% GC)
-  mean time:        117.971 ms (0.00% GC)
-  maximum time:     131.518 ms (0.00% GC)
-  --------------
-  samples:          13
-  evals/sample:     1
+![](docs/src/jl_dual.jpg)
 
-julia> @benchmark contract(At, Bt, "ikl", "jlk", "ij") setup=(At=rand(300,400,500);Bt=rand(80,500,400);)
-BenchmarkTools.Trial: 
-  memory estimate:  192.42 KiB #< Not that credible as external C is called.
-  allocs estimate:  74
-  --------------
-  minimum time:     104.077 ms (0.00% GC)
-  median time:      110.575 ms (0.00% GC)
-  mean time:        111.040 ms (0.00% GC)
-  maximum time:     117.738 ms (0.00% GC)
-  --------------
-  samples:          13
-  evals/sample:     1
-```
-
-For `Dual{Tag, Float64, 1}`:
-```
-julia> @benchmark begin
-           @tensor C[i, j] := At[i, k, l] * Bt[j, l, k]
-           C
-       end setup=(At=rand(300,400,500)*Dual{Nothing}(1.0,0.4);Bt=rand(80,500,400)*Dual{Nothing}(1.0,0.4);)
-BenchmarkTools.Trial: 
-  memory estimate:  376.22 KiB
-  allocs estimate:  21
-  --------------
-  minimum time:     4.936 s (0.00% GC)
-  median time:      4.936 s (0.00% GC)
-  mean time:        4.936 s (0.00% GC)
-  maximum time:     4.936 s (0.00% GC)
-  --------------
-  samples:          1
-  evals/sample:     1
-
-julia> @benchmark begin
-           contract(At, Bt, "ikl", "jlk", "ij");
-       end setup=(At=rand(300,400,500)*Dual{Nothing}(1.0,0.4);Bt=rand(80,500,400)*Dual{Nothing}(1.0,0.4);)
-BenchmarkTools.Trial: 
-  memory estimate:  381.84 KiB
-  allocs estimate:  95
-  --------------
-  minimum time:     421.861 ms (0.00% GC)
-  median time:      469.152 ms (0.00% GC)
-  mean time:        481.471 ms (0.00% GC)
-  maximum time:     565.719 ms (0.00% GC)
-  --------------
-  samples:          4
-  evals/sample:     1
-```
