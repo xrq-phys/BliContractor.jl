@@ -1,7 +1,6 @@
 # compile the lazy wrapper in C language.
 #
 using tblis_jll
-using tblis_jll: tblis, tblis_path
 
 # os compiler / library name switch.
 global cc = ""
@@ -37,6 +36,8 @@ if "TBLISDIR" in keys(ENV)
     @info "Using user-specified TBLIS runtime in $tblis_dir."
 else
     # use the tblis_jll vendored binary.
+    using tblis_jll: tblis, tblis_path
+
     global tblis_dir = dirname(dirname(tblis_path))
     global tblis_available = tblis_jll.is_available()
 end
