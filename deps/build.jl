@@ -24,6 +24,16 @@ end
 dll_path = joinpath(@__DIR__, "../src/tblis_contract_lazy")
 src_path = joinpath(@__DIR__, "../src/tblis_contract_lazy.c")
 
+if Sys.isapple() && Sys.ARCH == :aarch64
+    # Use external library instead.
+    src_dir = joinpath(@__DIR__, "../src")
+    lib_url = "https://github.com/xrq-phys/tblis/releases/download/v1.2.0%2Barm%2Bamx/libtblis_aarch64_apple_darwin.tar.gz"
+    cd(src_dir)
+    run(`bash -c "curl -L $lib_url > lib.tar.gz"`)
+    run(`tar -zxvf lib.tar.gz`)
+    ENV["TBLISDIR"] = src_dir
+end
+
 # find TBLIS build.
 global tblis_dir = ""
 global tblis_available = false
@@ -52,5 +62,10 @@ if tblis_available
     run(  compile_cmd )
 else
     @info "A valid TBLIS installation was not found. BliContractor.jl will not be available."
+end
+
+if Sys.isapple() && Sys.ARCH == :aarch64
+    # Cleanup
+    run(`rm -rf include lib.tar.gz`)
 end
 
