@@ -43,6 +43,13 @@ __init__() = begin
     end
 end
 
+# For setting thread number.
+# TODO: Create a standalone file for all util. funcs.
+set_num_threads(nthreads::Int) = begin
+    tblis_set_num_threads = dlsym(dll_obj, :tblis_set_num_threads)
+    ccall(tblis_set_num_threads, Cvoid, (Cuint,), nthreads)
+end
+
 include("contract_fwd.jl")
 if enable_pullbacks
     include("contract_bak.jl")
