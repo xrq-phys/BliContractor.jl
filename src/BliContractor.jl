@@ -23,7 +23,17 @@ if enable_tensor_opr
     import TensorOperations: IndexError
 end
 
-export contract, contract!
+mutable struct CustomStridedArray{T, N}
+    A::AbstractArray{T} # No N here! Dimensionality is arbitrary.
+    size::NTuple{N, Int64}
+    strides::NTuple{N, Int64}
+end
+Base.size(A::CustomStridedArray) = A.size
+Base.strides(A::CustomStridedArray) = A.strides
+Base.pointer(A::CustomStridedArray, i...) = pointer(A.A, i...)
+AllStridedArray{T} = Union{StridedArray{T}, CustomStridedArray{T, N}} where {T, N}
+
+export CustomStridedArray, contract, contract!
 
 global dll_path = joinpath(dirname(pathof(BliContractor)), "tblis_contract_lazy")
 global dll_obj = C_NULL
