@@ -12,13 +12,12 @@ jobs:
         arch:
           - x64
         version:
-          - '1.4'
-          - '1.5'
+          - '1.7'
           - 'nightly'
         os:
           - ubuntu-latest
-          # - macOS-latest
-          # - windows-latest
+          - macOS-latest
+          - windows-latest
         # NOTE: Waiting for upstream Aarch64 support.
         # include:
         #   - arch: aarch64
